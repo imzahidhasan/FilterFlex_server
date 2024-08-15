@@ -33,30 +33,54 @@ async function run() {
     const productsCollection = client.db("Filterflex").collection("products");
 
     //get routes
-    app.get("/products", async (req, res) => {
+   app.get("/products", async (req, res) => {
+     const page = parseInt(req.query.page) || 1;
+     const limit = parseInt(req.query.limit) || 10;
+     const skip = (page - 1) * limit;
 
-      const page = parseInt(req.query.page) || 1;
+     const totalProducts = await productsCollection.countDocuments();
 
-      const limit = parseInt(req.query.limit) || 10;
+     const products = await productsCollection
+       .find()
+       .skip(skip)
+       .limit(limit)
+       .toArray();
 
-      const skip = (page - 1) * limit;
+     res.send({
+       products,
+       totalPages: Math.ceil(totalProducts / limit),
+       currentPage: page,
+     });
+   });
 
-      const totalProducts = await productsCollection.countDocuments();
+   app.get("/products/search", async (req, res) => {
+     const searchText = req.query.q;
+     const page = parseInt(req.query.page) || 1;
+     const limit = parseInt(req.query.limit) || 10;
+     const skip = (page - 1) * limit;
 
-      const products = await productsCollection
-        .find()
-        .skip(skip)
-        .limit(limit)
-        .toArray();
-      
-      
-      res.send({
-        products,
-        totalPages: Math.ceil(totalProducts / limit),
-        currentPage: page,
-      });
-      
-    });
+     if (!searchText) {
+       return res.send({ error: "Search query is required" });
+     }
+
+     const regex = new RegExp(searchText, "i");
+
+     const totalProducts = await productsCollection.countDocuments({
+       productName: { $regex: regex },
+     });
+
+     const products = await productsCollection
+       .find({ productName: { $regex: regex } })
+       .skip(skip)
+       .limit(limit)
+       .toArray();
+
+     res.send({
+       products,
+       totalPages: Math.ceil(totalProducts / limit),
+       currentPage: page,
+     });
+   });
 
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged");
