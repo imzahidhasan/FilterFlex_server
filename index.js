@@ -30,15 +30,34 @@ async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
+    const productsCollection = client.db("Filterflex").collection("products");
 
-      app.get('/all-product', (req, res) => {
-          res.send('this route is for getting all product from db')
-      })
+    //get routes
+    app.get("/products", async (req, res) => {
+
+      const page = parseInt(req.query.page) || 1;
+
+      const limit = parseInt(req.query.limit) || 10;
+
+      const skip = (page - 1) * limit;
+
+      const totalProducts = await productsCollection.countDocuments();
+
+      const products = await productsCollection
+        .find()
+        .skip(skip)
+        .limit(limit)
+        .toArray();
       
       
+      res.send({
+        products,
+        totalPages: Math.ceil(totalProducts / limit),
+        currentPage: page,
+      });
       
-      
-      
+    });
+
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged");
   } finally {
