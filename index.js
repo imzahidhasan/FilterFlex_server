@@ -33,54 +33,92 @@ async function run() {
     const productsCollection = client.db("Filterflex").collection("products");
 
     //get routes
-   app.get("/products", async (req, res) => {
-     const page = parseInt(req.query.page) || 1;
-     const limit = parseInt(req.query.limit) || 10;
-     const skip = (page - 1) * limit;
+    app.get("/products", async (req, res) => {
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const skip = (page - 1) * limit;
 
-     const totalProducts = await productsCollection.countDocuments();
+      const totalProducts = await productsCollection.countDocuments();
 
-     const products = await productsCollection
-       .find()
-       .skip(skip)
-       .limit(limit)
-       .toArray();
+      const products = await productsCollection
+        .find()
+        .skip(skip)
+        .limit(limit)
+        .toArray();
 
-     res.send({
-       products,
-       totalPages: Math.ceil(totalProducts / limit),
-       currentPage: page,
-     });
-   });
+      res.send({
+        products,
+        totalPages: Math.ceil(totalProducts / limit),
+        currentPage: page,
+      });
+    });
 
-   app.get("/products/search", async (req, res) => {
-     const searchText = req.query.q;
-     const page = parseInt(req.query.page) || 1;
-     const limit = parseInt(req.query.limit) || 10;
-     const skip = (page - 1) * limit;
+    app.get("/products/filter", async (req, res) => {
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const skip = (page - 1) * limit;
 
-     if (!searchText) {
-       return res.send({ error: "Search query is required" });
-     }
+      const { brand, minValue, maxValue, searchTerm } = req.query;
 
-     const regex = new RegExp(searchText, "i");
+      let filter = {};
 
-     const totalProducts = await productsCollection.countDocuments({
-       productName: { $regex: regex },
-     });
+      if (brand && brand !== "a") {
+        filter.brandName = brand;
+      }
 
-     const products = await productsCollection
-       .find({ productName: { $regex: regex } })
-       .skip(skip)
-       .limit(limit)
-       .toArray();
+      if ((minValue && minValue > 0) || (maxValue && maxValue > 0)) {
+        filter.price = {};
+        if (minValue && minValue > 0) filter.price.$gte = parseFloat(minValue);
+        if (maxValue && maxValue > 0) filter.price.$lte = parseFloat(maxValue);
+      }
 
-     res.send({
-       products,
-       totalPages: Math.ceil(totalProducts / limit),
-       currentPage: page,
-     });
-   });
+      if (searchTerm) {
+        filter.$or = [{ productName: { $regex: searchTerm, $options: "i" } }];
+      }
+      console.log(filter);
+      const products = await productsCollection
+        .find(filter)
+        .skip(skip)
+        .limit(limit)
+        .toArray();
+
+      const total = await productsCollection.countDocuments(filter);
+      console.log({ products, total });
+      res.send({
+        products,
+        currentPage: page,
+        totalPages: Math.ceil(total / limit),
+      });
+    });
+
+    app.get("/products/search", async (req, res) => {
+      const searchText = req.query.q;
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const skip = (page - 1) * limit;
+
+      if (!searchText) {
+        return res.send({ error: "Search query is required" });
+      }
+
+      const regex = new RegExp(searchText, "i");
+
+      const totalProducts = await productsCollection.countDocuments({
+        productName: { $regex: regex },
+      });
+
+      const products = await productsCollection
+        .find({ productName: { $regex: regex } })
+        .skip(skip)
+        .limit(limit)
+        .toArray();
+
+      res.send({
+        products,
+        totalPages: Math.ceil(totalProducts / limit),
+        currentPage: page,
+      });
+    });
 
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged");
