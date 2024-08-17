@@ -7,13 +7,7 @@ const cors = require("cors");
 
 //middlewares
 app.use(
-  cors({
-    origin: [
-      // "http://localhost:5173",
-      "filterflex-35340.web.app",
-      "filterflex-35340.firebaseapp.com",
-    ]
-  })
+  cors()
 );
 app.use(express.json());
 
