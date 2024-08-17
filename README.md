@@ -26,7 +26,7 @@ Ensure you have the following installed:
    If you haven’t cloned the repository yet, do so:
 
    ```bash
-   git clone https://github.com/yourusername/filterflex_server.git
+   git clone https://github.com/imzahidhasan/FilterFlex_server.git
    cd filterflex_server` 
 
 2.  **Install Dependencies**
@@ -56,7 +56,7 @@ PORT=5000
 
 URI=mongodb+srv://<username>:<password>@cluster0.ek5qasv.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
     
-    Replace `your_database` with the name of your MongoDB database.
+    Replace `username and password` with the name of your MongoDB database username and password.
     
     Ensure MongoDB is running locally or configure the URI to connect to a remote MongoDB instance.
     
