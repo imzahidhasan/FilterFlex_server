@@ -58,20 +58,22 @@ async function run() {
       const limit = parseInt(req.query.limit) || 10;
       const skip = (page - 1) * limit;
 
-      const { brand, minValue, maxValue, searchTerm } = req.query;
+      const { brand, minValue, maxValue, searchTerm,category } = req.query;
 
       let filter = {};
 
       if (brand && brand !== "a") {
         filter.brandName = brand;
       }
-
+      if (category) {
+        filter.category=category
+      }
       if ((minValue && minValue > 0) || (maxValue && maxValue > 0)) {
         filter.price = {};
         if (minValue && minValue > 0) filter.price.$gte = parseFloat(minValue);
         if (maxValue && maxValue > 0) filter.price.$lte = parseFloat(maxValue);
       }
-
+      
       if (searchTerm) {
         filter.$or = [{ productName: { $regex: searchTerm, $options: "i" } }];
       }
@@ -120,8 +122,6 @@ async function run() {
       });
     });
 
-    await client.db("admin").command({ ping: 1 });
-    console.log("Pinged");
   } finally {
     // Ensures that the client will close when you finish/error
   }
