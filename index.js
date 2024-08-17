@@ -9,7 +9,9 @@ const cors = require("cors");
 app.use(
   cors({
     origin: [
-      'http://localhost:5173',
+      // "http://localhost:5173",
+      "filterflex-35340.firebaseapp.com",
+      "filterflex-35340.firebaseapp.com",
     ],
     credentials: true,
   })
@@ -65,7 +67,7 @@ async function run() {
       const limit = parseInt(req.query.limit) || 10;
       const skip = (page - 1) * limit;
 
-      const { brand, minValue, maxValue, searchTerm,category } = req.query;
+      const { brand, minValue, maxValue, searchTerm, category } = req.query;
 
       let filter = {};
 
@@ -73,14 +75,14 @@ async function run() {
         filter.brandName = brand;
       }
       if (category) {
-        filter.category=category
+        filter.category = category;
       }
       if ((minValue && minValue > 0) || (maxValue && maxValue > 0)) {
         filter.price = {};
         if (minValue && minValue > 0) filter.price.$gte = parseFloat(minValue);
         if (maxValue && maxValue > 0) filter.price.$lte = parseFloat(maxValue);
       }
-      
+
       if (searchTerm) {
         filter.$or = [{ productName: { $regex: searchTerm, $options: "i" } }];
       }
@@ -121,14 +123,13 @@ async function run() {
         .skip(skip)
         .limit(limit)
         .toArray();
-
+      console.log({ searchText, products, totalProducts });
       res.send({
         products,
         totalPages: Math.ceil(totalProducts / limit),
         currentPage: page,
       });
     });
-
   } finally {
     // Ensures that the client will close when you finish/error
   }
