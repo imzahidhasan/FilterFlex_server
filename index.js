@@ -6,7 +6,14 @@ const app = express();
 const cors = require("cors");
 
 //middlewares
-app.use(cors());
+app.use(
+  cors({
+    origin: [
+      'http://localhost:5173',
+    ],
+    credentials: true,
+  })
+);
 app.use(express.json());
 
 //server check route
@@ -29,7 +36,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
     const productsCollection = client.db("Filterflex").collection("products");
 
     //get routes
