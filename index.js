@@ -12,8 +12,7 @@ app.use(
       // "http://localhost:5173",
       "filterflex-35340.web.app",
       "filterflex-35340.firebaseapp.com",
-    ],
-    credentials: true,
+    ]
   })
 );
 app.use(express.json());
