@@ -45,7 +45,6 @@ async function run() {
         .skip(skip)
         .limit(limit)
         .toArray();
-
       res.send({
         products,
         totalPages: Math.ceil(totalProducts / limit),
@@ -82,14 +81,12 @@ async function run() {
       // Sorting logic
       let sortOption = {};
       if (sort === "newestFirst") {
-        sortOption = { createdAt: -1 }; 
+        sortOption = { createdAt: -1 };
       } else if (sort === "lowToHigh") {
         sortOption = { price: 1 };
       } else if (sort === "highToLow") {
         sortOption = { price: -1 };
       }
-
-      console.log(filter, sortOption);
 
       const products = await productsCollection
         .find(filter)
@@ -99,7 +96,7 @@ async function run() {
         .toArray();
 
       const total = await productsCollection.countDocuments(filter);
-      console.log({ products, total });
+      console.log({ total });
 
       res.send({
         products,
@@ -129,7 +126,7 @@ async function run() {
         .skip(skip)
         .limit(limit)
         .toArray();
-      console.log({ searchText, products, totalProducts });
+
       res.send({
         products,
         totalPages: Math.ceil(totalProducts / limit),
