@@ -6,9 +6,7 @@ const app = express();
 const cors = require("cors");
 
 //middlewares
-app.use(
-  cors()
-);
+app.use(cors());
 app.use(express.json());
 
 //server check route
@@ -60,7 +58,8 @@ async function run() {
       const limit = parseInt(req.query.limit) || 10;
       const skip = (page - 1) * limit;
 
-      const { brand, minValue, maxValue, searchTerm, category } = req.query;
+      const { brand, minValue, maxValue, searchTerm, category, sort } =
+        req.query;
 
       let filter = {};
 
@@ -79,15 +78,29 @@ async function run() {
       if (searchTerm) {
         filter.$or = [{ productName: { $regex: searchTerm, $options: "i" } }];
       }
-      console.log(filter);
+
+      // Sorting logic
+      let sortOption = {};
+      if (sort === "newestFirst") {
+        sortOption = { createdAt: -1 }; 
+      } else if (sort === "lowToHigh") {
+        sortOption = { price: 1 };
+      } else if (sort === "highToLow") {
+        sortOption = { price: -1 };
+      }
+
+      console.log(filter, sortOption);
+
       const products = await productsCollection
         .find(filter)
+        .sort(sortOption)
         .skip(skip)
         .limit(limit)
         .toArray();
 
       const total = await productsCollection.countDocuments(filter);
       console.log({ products, total });
+
       res.send({
         products,
         currentPage: page,
